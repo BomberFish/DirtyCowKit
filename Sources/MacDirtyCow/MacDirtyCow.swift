@@ -4,7 +4,7 @@ extension String: LocalizedError {
     public var errorDescription: String? { return self }
 }
 
-public enum MDC {
+public enum MacDirtyCow {
     public static var isMDCSafe: Bool = true
     
     public static func restartBackboard() {
