@@ -20,6 +20,7 @@ public enum MacDirtyCow {
         // open and map original font
         let fd = open(originPath, O_RDONLY | O_CLOEXEC)
         if fd == -1 {
+            // TODO: Make this throw??? Would be cool ngl
             print("Could not open target file")
             return false
         }
