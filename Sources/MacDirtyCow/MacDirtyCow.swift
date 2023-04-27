@@ -16,13 +16,11 @@ public enum MacDirtyCow {
     }
     // MARK: - Literally black magic.
 
-    public static func overwriteFileWithDataImpl(originPath: String, replacementData: Data) -> Bool {
+    public static func overwriteFileWithDataImpl(originPath: String, replacementData: Data) throws {
         // open and map original font
         let fd = open(originPath, O_RDONLY | O_CLOEXEC)
         if fd == -1 {
-            // TODO: Make this throw??? Would be cool ngl
-            print("Could not open target file")
-            return false
+            throw "Could not open target file"
         }
         defer { close(fd) }
         // check size of font
@@ -30,21 +28,18 @@ public enum MacDirtyCow {
         guard originalFileSize >= replacementData.count else {
             print("Original file: \(originalFileSize)")
             print("Replacement file: \(replacementData.count)")
-            print("File too big!")
-            return false
+            throw("File too big! (\(replacementData.count)B vs \(originalFileSize)B)")
         }
         lseek(fd, 0, SEEK_SET)
 
         // Map the font we want to overwrite so we can mlock it
         let fileMap = mmap(nil, replacementData.count, PROT_READ, MAP_SHARED, fd, 0)
         if fileMap == MAP_FAILED {
-            print("Failed to map")
-            return false
+            throw("Failed to map")
         }
         // mlock so the file gets cached in memory
         guard mlock(fileMap, replacementData.count) == 0 else {
-            print("Failed to mlock")
-            return true
+            throw("Failed to mlock")
         }
 
         // for every 16k chunk, rewrite
@@ -67,13 +62,11 @@ public enum MacDirtyCow {
                 print("try again?!")
             }
             guard overwroteOne else {
-                print("Failed to overwrite")
-                return false
+                throw("Failed to overwrite")
             }
         }
         print(Date())
         print("Successfully overwrote!")
-        return true
     }
 
     public static func xpc_crash(_ serviceName: String) {
